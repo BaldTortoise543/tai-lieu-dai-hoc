@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thư mục Đại Học</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F3EFE4; --paper-line:#DCD5C2;
+    --ink:#1E1B16; --ink-soft:#5C5548;
+    --default-color: #4A5568; --default-soft: #EDF2F7;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper); color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif; line-height:1.5;
+  }
+  body::before{
+    content:""; position:fixed; inset:0; z-index:-1;
+    background-image: repeating-linear-gradient(to bottom, transparent, transparent 37px, var(--paper-line) 38px);
+    opacity:0.4; pointer-events:none;
+  }
+  header{ max-width:920px; margin:0 auto; padding:64px 28px 32px; position:relative; }
+  .kicker{ font-size:14px; color:var(--ink-soft); margin:0 0 6px; }
+  h1{ font-family:'Source Serif 4', serif; font-weight:700; font-size:clamp(36px,6vw,56px); margin:0 0 14px; letter-spacing:-0.01em; }
+  header p.sub{ max-width:56ch; color:var(--ink-soft); font-size:16px; margin:0; }
+  main{ max-width:920px; margin:0 auto; padding:0 28px 100px; }
+  section.subject{ margin-top:56px; }
+  .subject-head{ display:flex; align-items:baseline; gap:16px; border-bottom:2px solid var(--ink); padding-bottom:14px; margin-bottom:22px; }
+  .subject-head h2{ font-family:'Source Serif 4', serif; font-style:italic; font-weight:600; font-size:30px; margin:0; }
+  .subject-head .count{ font-size:14px; color:var(--ink-soft); }
+  .docs{ display:grid; grid-template-columns:1fr; gap:2px; background:var(--paper-line); border:1px solid var(--paper-line); }
+  .doc{ display:flex; align-items:center; gap:18px; background:var(--paper); padding:18px 20px; text-decoration:none; color:inherit; transition:background 0.15s ease, padding-left 0.15s ease; }
+  .doc:hover{ padding-left:26px; background:var(--default-soft); }
+  .doc .filetype{ flex:none; width:42px; height:42px; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; letter-spacing:0.02em; color:#fff; background:var(--default-color); text-transform: uppercase; }
+  .doc .meta{ flex:1; min-width:0; }
+  .doc .name{ font-size:16px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display: block; }
+  .doc .desc{ font-size:13px; color:var(--ink-soft); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display: block; }
+  .doc .arrow{ flex:none; font-size:20px; color:var(--ink-soft); }
+  footer{ max-width:920px; margin:0 auto; padding:0 28px 60px; color:var(--ink-soft); font-size:13px; }
+  #loading { text-align: center; padding: 40px; font-style: italic; color: var(--ink-soft); }
+  @media (max-width:520px){ .doc .desc{ display:none; } }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="kicker">Google Drive — Tài liệu</p>
+  <h1>Ghi chép &amp; tài liệu</h1>
+  <p class="sub">Mục lục các môn học và tài liệu đang lưu trong thư mục. Dữ liệu được đồng bộ trực tiếp từ Google Drive. Bấm vào một tài liệu để xem.</p>
+</header>
+
+<main id="app-container">
+  <div id="loading">Đang tải dữ liệu từ Google Drive...</div>
+</main>
+
+<footer>
+  Được tạo tự động từ nội dung thư mục trên Google Drive.
+</footer>
+
+<script>
+  // ==========================================
+  // URL CỦA GOOGLE APPS SCRIPT WEB APP
+  // Dán URL Web App của bạn vào giữa 2 dấu nháy kép dưới đây:
+  // ==========================================
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzYUlv7z2dS3v69zN3nUsaQPT7P0CWfxXdwI649dXqQDnSAnJdI17zkGWx-9Q-nf11L/exec";
+
+  // Dữ liệu dự phòng lấy từ tin nhắn của bạn (sẽ dùng nếu chưa cài URL)
+  const FALLBACK_DATA = [{"id":"1IL3d5so2ZZLuhm7RI2lMV8GvubKfuD3N","name":"DSTT","files":[{"id":"1NNXevDkFGpu6SrZ_1ktbmM7gqnhVIiEC","name":"1788913615403_5926164541077194320_g6235470969860208613_3c9cdb38a8d4ec48bae58de33c758486.jpg","url":"https://drive.google.com/file/d/1NNXevDkFGpu6SrZ_1ktbmM7gqnhVIiEC/view?usp=drivesdk","mimeType":"image/jpeg","description":""},{"id":"125qlnUEduTyy8Jf_UII0jbSUnGDmaMHr","name":"LA_Lecture_2026.pdf","url":"https://drive.google.com/file/d/125qlnUEduTyy8Jf_UII0jbSUnGDmaMHr/view?usp=drivesdk","mimeType":"application/pdf","description":""}]},{"id":"1KP2hNDxzCIIxrXgk95eA_7Sz3y6EtppI","name":"ĐRL","files":[{"id":"1Wa-gLj5mxJJBZAefOulcMkTeH93WDtP4","name":"14h30-19h30_10_10_2026.pdf","url":"https://drive.google.com/file/d/1Wa-gLj5mxJJBZAefOulcMkTeH93WDtP4/view?usp=drivesdk","mimeType":"application/pdf","description":""},{"id":"1a6YqUZSVbatXOjDrFrxQLjgYcPswv3Kz","name":"link.txt","url":"https://drive.google.com/file/d/1a6YqUZSVbatXOjDrFrxQLjgYcPswv3Kz/view?usp=drivesdk","mimeType":"text/plain","description":""}]},{"id":"11Y3LR4ZGPfIhm2C-D9cOBV8UtRnK2Ec9","name":"Giải tích","files":[{"id":"1-wDbLdnzxNBIZ8cMfl95DhRE9Zg4dInA","name":"Chương I Hàm số 1.pdf","url":"https://drive.google.com/file/d/1-wDbLdnzxNBIZ8cMfl95DhRE9Zg4dInA/view?usp=drivesdk","mimeType":"application/pdf","description":""},{"id":"1BDnvgy8HjRh-F-XP0DlVE5bY06VQrVim","name":"Chương II ĐẠO HÀM 1 củ.pdf","url":"https://drive.google.com/file/d/1BDnvgy8HjRh-F-XP0DlVE5bY06VQrVim/view?usp=drivesdk","mimeType":"application/pdf","description":""},{"id":"1SbxxG60-pkEiP0jVCvOSNuR9vb1X9GKB","name":"Chương III Tích phân.pdf","url":"https://drive.google.com/file/d/1SbxxG60-pkEiP0jVCvOSNuR9vb1X9GKB/view?usp=drivesdk","mimeType":"application/pdf","description":""},{"id":"1NrUP5LHnLOcU1wDvnahrQSmhi8bnYSWq","name":"TOAN CAO CAP TAP  1.pdf","url":"https://drive.google.com/file/d/1NrUP5LHnLOcU1wDvnahrQSmhi8bnYSWq/view?usp=drivesdk","mimeType":"application/pdf","description":""},{"id":"1G9saW7U0UKDbJu3xE9fC3iyXwj--ZiEC","name":"TOAN CAO CAP TAP 2.pdf","url":"https://drive.google.com/file/d/1G9saW7U0UKDbJu3xE9fC3iyXwj--ZiEC/view?usp=drivesdk","mimeType":"application/pdf","description":""}]},{"id":"1pi2UW5c8h2kOXTw2472K4DRYDWynovyS","name":"NMCNS&TTNT","files":[{"id":"1kGhWaQzj4HPBrfaJWCTFXUXEsozddFN9","name":"102260273 _TranCaoHoa_26t2_ASS1_Chuong1.pdf","url":"https://drive.google.com/file/d/1kGhWaQzj4HPBrfaJWCTFXUXEsozddFN9/view?usp=drivesdk","mimeType":"application/pdf","description":""},{"id":"1Pgusgl_sEdAx0dwhg7bAMRQQZM4jdFiA","name":"102260273 _TranCaoHoa_26t2_ASS2_Chuong2.pdf","url":"https://drive.google.com/file/d/1Pgusgl_sEdAx0dwhg7bAMRQQZM4jdFiA/view?usp=drivesdk","mimeType":"application/pdf","description":""},{"id":"11qcTYADmStQg7xEU8nNawNPFL9JXAwVl","name":"Bài giảng Nhập môn CNS và UDTTNT_v1.pdf","url":"https://drive.google.com/file/d/11qcTYADmStQg7xEU8nNawNPFL9JXAwVl/view?usp=drivesdk","mimeType":"application/pdf","description":""},{"id":"1aASlvb7S4oP0eIIuW8HYn3WZNT6ANLNN","name":"BaoCao_Chuong2.docx","url":"https://docs.google.com/document/d/1aASlvb7S4oP0eIIuW8HYn3WZNT6ANLNN/edit?usp=drivesdk&ouid=116402337073932659089&rtpof=true&sd=true","mimeType":"application/vnd.openxmlformats-officedocument.wordprocessingml.document","description":""},{"id":"15ydHgA9xQbQw8xy1908AZq7lQHPIA8kZ","name":"Giải Thích Đệ Quy Fibonacci C++.pdf","url":"https://drive.google.com/file/d/15ydHgA9xQbQw8xy1908AZq7lQHPIA8kZ/view?usp=drivesdk","mimeType":"application/pdf","description":""},{"id":"1GrTwYF8A7zKlHgnb_4bOmnqVyFPRGcnp","name":"ThaoLuan_Chuong1.pdf","url":"https://drive.google.com/file/d/1GrTwYF8A7zKlHgnb_4bOmnqVyFPRGcnp/view?usp=drivesdk","mimeType":"application/pdf","description":""},{"id":"1X4rIi7QFDDmPniEOXrUFIlygaIIdrmm_","name":"ThaoLuan_Chuong2.pdf","url":"https://drive.google.com/file/d/1X4rIi7QFDDmPniEOXrUFIlygaIIdrmm_/view?usp=drivesdk","mimeType":"application/pdf","description":""}]},{"id":"1IOJRkHO7E1EiO381WsiIv4nVtgtg5URN","name":"NMN","files":[{"id":"13ByCqkxj_mCTFIeUcibtWNnlU7D2sPXa","name":"Bai_tap_Nhap_mon_nganh_CNTT.docx","url":"https://docs.google.com/document/d/13ByCqkxj_mCTFIeUcibtWNnlU7D2sPXa/edit?usp=drivesdk&ouid=116402337073932659089&rtpof=true&sd=true","mimeType":"application/vnd.openxmlformats-officedocument.wordprocessingml.document","description":""},{"id":"1cmNObBYlwjUjABRko4EhyiMBIX8D5Occ","name":"Bai_tap_Nhap_mon_nganh_CNTT.pdf","url":"https://drive.google.com/file/d/1cmNObBYlwjUjABRko4EhyiMBIX8D5Occ/view?usp=drivesdk","mimeType":"application/pdf","description":""},{"id":"1COQsQHtK5Q5AXopW07wiKwxLow9w3Kx9","name":"Định hướng nghề nghiệp và lộ trình ngành CNTT.docx","url":"https://docs.google.com/document/d/1COQsQHtK5Q5AXopW07wiKwxLow9w3Kx9/edit?usp=drivesdk&ouid=116402337073932659089&rtpof=true&sd=true","mimeType":"application/vnd.openxmlformats-officedocument.wordprocessingml.document","description":""}]},{"id":"17Y5WF1EJY8Z21lXC9C5OclTZnAWYiZ6U","name":"QUANSU","files":[{"id":"1kcLa351D2LEx4-M-coMssF6WXevSSLFa","name":"decuonghp1.pdf","url":"https://drive.google.com/file/d/1kcLa351D2LEx4-M-coMssF6WXevSSLFa/view?usp=drivesdk","mimeType":"application/pdf","description":""},{"id":"1MHcFctx8NXUp6SwNhmeEKYhMec_UxjU3","name":"giaotrinh.pdf","url":"https://drive.google.com/file/d/1MHcFctx8NXUp6SwNhmeEKYhMec_UxjU3/view?usp=drivesdk","mimeType":"application/pdf","description":""}]},{"id":"1AFnfDWja7cULn_z2bG3Fm-8HWscJmNR4","name":"Triết Học","files":[{"id":"1vdmjyETgMVrcS8HbhJqtd2JZWi2ADxoi","name":"1788993421801_1313981882532579153_g4928843979282467595_566d3abd839ef137f69395eadb8ba844.jpg","url":"https://drive.google.com/file/d/1vdmjyETgMVrcS8HbhJqtd2JZWi2ADxoi/view?usp=drivesdk","mimeType":"image/jpeg","description":""},{"id":"1YE6WKKmqs4G0qj_l0nXQWF-Li6krPTt-","name":"1788993421804_1313981882532579153_g4928843979282467595_86c6f72654e9b9538015c4417c5d603e.jpg","url":"https://drive.google.com/file/d/1YE6WKKmqs4G0qj_l0nXQWF-Li6krPTt-/view?usp=drivesdk","mimeType":"image/jpeg","description":""},{"id":"1ZBkrmNEhEHVlvDPJR_8gnQEgmkLOcnh2","name":"1788993514851_1313981882532579153_g4928843979282467595_9e9447a5ee84c6a75c667602af5b9ea8.jpg","url":"https://drive.google.com/file/d/1ZBkrmNEhEHVlvDPJR_8gnQEgmkLOcnh2/view?usp=drivesdk","mimeType":"image/jpeg","description":""},{"id":"1qkN11SvxehJb_d_6BhpTYVucMR4Ptt3k","name":"1788993514854_1313981882532579153_g4928843979282467595_0bc58fb77a2a6f56fff2cb68c68ded83.jpg","url":"https://drive.google.com/file/d/1qkN11SvxehJb_d_6BhpTYVucMR4Ptt3k/view?usp=drivesdk","mimeType":"image/jpeg","description":""},{"id":"1wBTKZca8q6UIXNqMM7-srf29lYqo-_o_","name":"1788993514857_1313981882532579153_g4928843979282467595_af809d925b4b61bd99f9c114c050ba48.jpg","url":"https://drive.google.com/file/d/1wBTKZca8q6UIXNqMM7-srf29lYqo-_o_/view?usp=drivesdk","mimeType":"image/jpeg","description":""},{"id":"1J2Y7c0lP1IwubxJFY0FGwTA67GpUkaWM","name":"C2_3. Phương thức tồn tại của vật chất.png","url":"https://drive.google.com/file/d/1J2Y7c0lP1IwubxJFY0FGwTA67GpUkaWM/view?usp=drivesdk","mimeType":"image/png","description":""},{"id":"1z6jt0MAAZ1NjwQK9pqFp61_gDIo2FWjf","name":"C2_4. Hình thức tồn tại của vật chất.png","url":"https://drive.google.com/file/d/1z6jt0MAAZ1NjwQK9pqFp61_gDIo2FWjf/view?usp=drivesdk","mimeType":"image/png","description":""},{"id":"1U-Gg-jRAo5W7MtAFRYqUITCLG7khczx6","name":"C2_5. Tổng hợp_Vat chat va phuong thuc ton tai cua vat chat.png","url":"https://drive.google.com/file/d/1U-Gg-jRAo5W7MtAFRYqUITCLG7khczx6/view?usp=drivesdk","mimeType":"image/png","description":""},{"id":"1K-_RaMuM7BO0cHQLfZUEL88qTsRcnLwo","name":"C2_6. Nguon goc_ban chat_ket cau cua y thuc.png","url":"https://drive.google.com/file/d/1K-_RaMuM7BO0cHQLfZUEL88qTsRcnLwo/view?usp=drivesdk","mimeType":"image/png","description":""},{"id":"16ERT1W4r_tQ6Ev8-M8TqHBfj2zZYd-wf","name":"C2_7.Moi quan he vat chat va y thuc.png","url":"https://drive.google.com/file/d/16ERT1W4r_tQ6Ev8-M8TqHBfj2zZYd-wf/view?usp=drivesdk","mimeType":"image/png","description":""},{"id":"1VyvghcRbV9PM-GXhqZxRPdT9kWzW-5PQ","name":"Chương 1_Khái luận về triết học và triết học Mác - Lênin-Edit_9.2026.pptx","url":"https://docs.google.com/presentation/d/1VyvghcRbV9PM-GXhqZxRPdT9kWzW-5PQ/edit?usp=drivesdk&ouid=116402337073932659089&rtpof=true&sd=true","mimeType":"application/vnd.openxmlformats-officedocument.presentationml.presentation","description":""},{"id":"1Lc1QxadOa7ry6ESsDBm7Ozr3SYZQ-lZm","name":"Chương 2_Chu nghia duy vat bien chung_LBH. edit_9.2026.pptx","url":"https://docs.google.com/presentation/d/1Lc1QxadOa7ry6ESsDBm7Ozr3SYZQ-lZm/edit?usp=drivesdk&ouid=116402337073932659089&rtpof=true&sd=true","mimeType":"application/vnd.openxmlformats-officedocument.presentationml.presentation","description":""},{"id":"1IJw7ufRTAg6rCyEgI_nmMXk8WiJl1H0G","name":"Tap bai giang Triet hoc Mac- Lenin 8.2024.docx","url":"https://docs.google.com/document/d/1IJw7ufRTAg6rCyEgI_nmMXk8WiJl1H0G/edit?usp=drivesdk&ouid=116402337073932659089&rtpof=true&sd=true","mimeType":"application/vnd.openxmlformats-officedocument.wordprocessingml.document","description":""}]}];
+
+  function getFileIconText(mimeType, name) {
+    if (mimeType.includes('pdf')) return 'PDF';
+    if (mimeType.includes('document') || mimeType.includes('word')) return 'DOC';
+    if (mimeType.includes('spreadsheet') || mimeType.includes('excel')) return 'XLS';
+    if (mimeType.includes('presentation') || mimeType.includes('powerpoint')) return 'PPT';
+    if (mimeType.includes('image') || mimeType.includes('jpeg') || mimeType.includes('png')) return 'IMG';
+    if (mimeType.includes('video')) return 'VID';
+    if (mimeType.includes('audio')) return 'AUD';
+    if (mimeType.includes('text')) return 'TXT';
+    if (mimeType.includes('folder')) return 'DIR';
+    
+    const parts = name.split('.');
+    if (parts.length > 1) return parts[parts.length - 1].toUpperCase().substring(0, 3);
+    return 'FILE';
+  }
+  
+  // Bảng màu cho từng môn học (Thư mục con)
+  const colors = [
+    { bg: '#28456B', hover: '#E4EAF1' }, // Xanh dương đậm
+    { bg: '#7A2E22', hover: '#F1E4DF' }, // Đỏ nâu
+    { bg: '#2B6CB0', hover: '#EBF8FF' }, // Xanh lam
+    { bg: '#2F855A', hover: '#F0FFF4' }, // Xanh lá
+    { bg: '#C05621', hover: '#FFFAF0' }, // Cam
+    { bg: '#805AD5', hover: '#FAF5FF' }, // Tím
+    { bg: '#D69E2E', hover: '#FFFFF0' }  // Vàng
+  ];
+
+  function renderData(data) {
+    const container = document.getElementById('app-container');
+    container.innerHTML = '';
+    
+    if (data.length === 0) {
+      container.innerHTML = '<div id="loading">Thư mục trống hoặc không có quyền truy cập.</div>';
+      return;
+    }
+    
+    data.forEach((subject, index) => {
+      const colorObj = colors[index % colors.length];
+      const sectionId = 'subject-' + index;
+      
+      const section = document.createElement('section');
+      section.className = 'subject';
+      section.id = sectionId;
+      
+      // Cấp phát CSS theo màu môn học
+      const subjectStyle = document.createElement('style');
+      subjectStyle.innerHTML = `
+        #${sectionId} .doc:hover { background: ${colorObj.hover} !important; }
+        #${sectionId} .filetype { background: ${colorObj.bg} !important; }
+      `;
+      document.head.appendChild(subjectStyle);
+      
+      let docsHtml = '';
+      subject.files.forEach(file => {
+        const typeText = getFileIconText(file.mimeType, file.name);
+        let displayName = file.name;
+        
+        // Cắt bớt phần đuôi file (.pdf, .docx, v.v.) khỏi tên hiển thị để đẹp hơn
+        const lastDot = displayName.lastIndexOf('.');
+        if (lastDot > 0 && displayName.length - lastDot <= 5) {
+            displayName = displayName.substring(0, lastDot);
+        }
+
+        const desc = file.description || (typeText + ' File');
+        
+        docsHtml += `
+          <a class="doc" href="${file.url}" target="_blank" rel="noopener">
+            <span class="filetype">${typeText}</span>
+            <span class="meta">
+              <span class="name" title="${file.name}">${displayName}</span>
+              <span class="desc" title="${desc}">${desc}</span>
+            </span>
+            <span class="arrow">↗</span>
+          </a>
+        `;
+      });
+      
+      section.innerHTML = `
+        <div class="subject-head">
+          <h2>${subject.name}</h2>
+          <span class="count">${subject.files.length} tài liệu</span>
+        </div>
+        <div class="docs">
+          ${docsHtml}
+        </div>
+      `;
+      container.appendChild(section);
+    });
+  }
+
+  async function loadDriveData() {
+    try {
+      if (SCRIPT_URL === "https://script.google.com/macros/s/AKfycbzYUlv7z2dS3v69zN3nUsaQPT7P0CWfxXdwI649dXqQDnSAnJdI17zkGWx-9Q-nf11L/exec" || SCRIPT_URL === "") {
+        // Nếu người dùng chưa điền URL, sử dụng dữ liệu dự phòng (JSON bạn gửi) để xem trước
+        console.log("Đang sử dụng dữ liệu mẫu vì SCRIPT_URL chưa được thiết lập.");
+        renderData(FALLBACK_DATA);
+        
+        // Hiện thông báo nhỏ
+        const msg = document.createElement('div');
+        msg.style = "background: #fff3cd; color: #856404; padding: 10px 20px; border-radius: 4px; margin-bottom: 20px; font-size: 14px; border: 1px solid #ffeeba;";
+        msg.innerHTML = "<strong>Đang hiển thị dữ liệu xem trước (Mẫu).</strong> Để trang tự động cập nhật, bạn nhớ thay đổi <code>SCRIPT_URL</code> trong file HTML nhé.";
+        document.getElementById('app-container').prepend(msg);
+        
+        return;
+      }
+      
+      const response = await fetch(SCRIPT_URL);
+      const data = await response.json();
+      
+      renderData(data);
+    } catch (error) {
+      console.error(error);
+      document.getElementById('loading').innerHTML = `
+          <div style="color: #721c24; border: 1px solid #f5c6cb; padding: 20px; border-radius: 8px; background: #f8d7da;">
+            <strong>Lỗi khi lấy dữ liệu trực tiếp:</strong> ${error.message}<br><br>
+            Hãy kiểm tra xem Web App URL đã copy đúng chưa, và quyền truy cập của Google Apps Script đã được thiết lập là <b>"Anyone" (Bất kỳ ai)</b> chưa.
+          </div>
+      `;
+      // Vẫn hiển thị dữ liệu mẫu để web không trống trơn
+      renderData(FALLBACK_DATA);
+    }
+  }
+  
+  loadDriveData();
+</script>
+
+</body>
+</html>
