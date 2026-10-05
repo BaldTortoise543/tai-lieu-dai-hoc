@@ -163,7 +163,7 @@
 
   async function loadDriveData() {
     try {
-      if (SCRIPT_URL === "https://script.google.com/macros/s/AKfycbzYUlv7z2dS3v69zN3nUsaQPT7P0CWfxXdwI649dXqQDnSAnJdI17zkGWx-9Q-nf11L/exec" || SCRIPT_URL === "") {
+      if (SCRIPT_URL === "") {
         // Nếu người dùng chưa điền URL, sử dụng dữ liệu dự phòng (JSON bạn gửi) để xem trước
         console.log("Đang sử dụng dữ liệu mẫu vì SCRIPT_URL chưa được thiết lập.");
         renderData(FALLBACK_DATA);
